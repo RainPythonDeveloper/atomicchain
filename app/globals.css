@@ -1,26 +1,531 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* AtomicChain Retro-Futurist Palette */
+  --ac-orange:    #F04D07;
+  --ac-orange-lt: #FF6B35;
+  --ac-orange-dk: #C43A00;
+  --ac-red:       #891A06;
+  --ac-red-dk:    #5A1200;
+  --ac-gray:      #989999;
+  --ac-bg:        #1F1B1E;
+  --ac-surface:   #272122;
+  --ac-surface2:  #302628;
+  --ac-border:    #3D2C28;
+  --ac-border-lt: #5A3A32;
+  --ac-text:      #F0E0D0;
+  --ac-text-dim:  #B09080;
+  --ac-text-mute: #706060;
+
+  --background: #1F1B1E;
+  --foreground: #F0E0D0;
+  --card: #272122;
+  --card-foreground: #F0E0D0;
+  --popover: #272122;
+  --popover-foreground: #F0E0D0;
+  --primary: #F04D07;
+  --primary-foreground: #ffffff;
+  --secondary: #302628;
+  --secondary-foreground: #F0E0D0;
+  --muted: #302628;
+  --muted-foreground: #989999;
+  --accent: #F04D07;
+  --accent-foreground: #ffffff;
+  --destructive: #891A06;
+  --border: #3D2C28;
+  --input: #302628;
+  --ring: #F04D07;
+  --radius: 0.6rem;
+  --sidebar: #1A1618;
+  --sidebar-foreground: #F0E0D0;
+  --sidebar-primary: #F04D07;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #302628;
+  --sidebar-accent-foreground: #F0E0D0;
+  --sidebar-border: #3D2C28;
+  --sidebar-ring: #F04D07;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    background-color: var(--ac-bg);
+    color: var(--ac-text);
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ═══════════════════════════════════════
+   RETRO SCANLINE BACKGROUND
+═══════════════════════════════════════ */
+.retro-bg {
+  background-color: var(--ac-bg);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    ),
+    radial-gradient(ellipse at 20% 50%, rgba(240,77,7,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(137,26,6,0.06) 0%, transparent 50%);
 }
+
+/* ═══════════════════════════════════════
+   BUBBLE / CONVEX BUTTONS  (3D raised)
+═══════════════════════════════════════ */
+
+/* Primary orange bubble */
+.bubble-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  color: #fff;
+  background: linear-gradient(180deg, #FF7040 0%, #F04D07 45%, #C43A00 100%);
+  border: 1.5px solid #8B2A00;
+  border-bottom-color: #3A0E00;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px #2A0800,
+    0 5px 0 0 #891A06,
+    0 6px 0 1px #1A0400,
+    inset 0 1px 0 rgba(255, 160, 80, 0.45),
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    0 0 16px rgba(240,77,7,0.12);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
+  user-select: none;
+  outline: none;
+}
+.bubble-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow:
+    0 0 0 1px #2A0800,
+    0 5px 0 0 #891A06,
+    0 6px 0 1px #1A0400,
+    inset 0 1px 0 rgba(255, 160, 80, 0.55),
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    0 0 24px rgba(240,77,7,0.25);
+}
+.bubble-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow:
+    0 0 0 1px #2A0800,
+    0 1px 0 0 #891A06,
+    0 2px 0 1px #1A0400,
+    inset 0 2px 5px rgba(0,0,0,0.45),
+    inset 0 0 0 rgba(255,160,80,0);
+}
+.bubble-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: saturate(0.4);
+}
+
+/* Ghost dark bubble */
+.bubble-btn-ghost {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  color: var(--ac-gray);
+  background: linear-gradient(180deg, #302628 0%, #272122 100%);
+  border: 1.5px solid #4A3028;
+  border-bottom-color: #1A1010;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px #120A08,
+    0 4px 0 0 #1A1010,
+    0 5px 0 1px #0A0404,
+    inset 0 1px 0 rgba(255,160,80,0.08),
+    inset 0 -1px 0 rgba(0,0,0,0.4);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, color 0.1s ease;
+  user-select: none;
+  outline: none;
+}
+.bubble-btn-ghost:hover:not(:disabled) {
+  color: var(--ac-text);
+  border-color: #6A4030;
+  box-shadow:
+    0 0 0 1px #120A08,
+    0 4px 0 0 #1A1010,
+    0 5px 0 1px #0A0404,
+    inset 0 1px 0 rgba(255,160,80,0.14),
+    inset 0 -1px 0 rgba(0,0,0,0.4),
+    0 0 12px rgba(240,77,7,0.1);
+}
+.bubble-btn-ghost:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow:
+    0 0 0 1px #120A08,
+    0 1px 0 0 #1A1010,
+    0 2px 0 1px #0A0404,
+    inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Icon-only ghost bubble */
+.bubble-btn-icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+/* ═══════════════════════════════════════
+   RETRO NODE CARDS
+═══════════════════════════════════════ */
+.retro-node {
+  border-radius: 10px;
+  border: 1.5px solid var(--ac-border-lt);
+  background: var(--ac-surface);
+  box-shadow:
+    0 0 0 1px #0A0604,
+    0 6px 0 0 #1A0E0C,
+    0 7px 0 1px #080402,
+    inset 0 1px 0 rgba(255,160,80,0.07);
+  overflow: hidden;
+}
+
+.retro-node-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-bottom: 1.5px solid;
+  cursor: grab;
+  user-select: none;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.retro-node-header:active {
+  cursor: grabbing;
+}
+
+/* Node header color variants — one per node type */
+
+/* Prompt — Electric Blue */
+.node-header-blue {
+  background: linear-gradient(180deg, rgba(43,127,224,0.25) 0%, rgba(30,90,170,0.16) 100%);
+  border-color: rgba(43,127,224,0.38);
+  color: #60A8F8;
+}
+
+/* Negative — Crimson */
+.node-header-crimson {
+  background: linear-gradient(180deg, rgba(196,32,32,0.28) 0%, rgba(140,18,18,0.18) 100%);
+  border-color: rgba(196,32,32,0.45);
+  color: #E06060;
+}
+
+/* Size — Jade Teal */
+.node-header-teal {
+  background: linear-gradient(180deg, rgba(10,158,138,0.25) 0%, rgba(6,110,95,0.16) 100%);
+  border-color: rgba(10,158,138,0.38);
+  color: #40C8B8;
+}
+
+/* Style — Violet */
+.node-header-violet {
+  background: linear-gradient(180deg, rgba(138,63,208,0.25) 0%, rgba(95,38,160,0.16) 100%);
+  border-color: rgba(138,63,208,0.38);
+  color: #B078F0;
+}
+
+/* Combiner — Amber Gold */
+.node-header-gold {
+  background: linear-gradient(180deg, rgba(200,144,0,0.25) 0%, rgba(150,100,0,0.16) 100%);
+  border-color: rgba(200,144,0,0.38);
+  color: #E0B030;
+}
+
+/* Generate — Lava Orange (brand) */
+.node-header-orange {
+  background: linear-gradient(180deg, rgba(240,77,7,0.28) 0%, rgba(196,58,0,0.18) 100%);
+  border-color: rgba(240,77,7,0.42);
+  color: #FF8050;
+}
+
+/* Output — Emerald */
+.node-header-emerald {
+  background: linear-gradient(180deg, rgba(26,158,90,0.25) 0%, rgba(16,110,60,0.16) 100%);
+  border-color: rgba(26,158,90,0.38);
+  color: #50D890;
+}
+
+/* Refine — Magenta */
+.node-header-magenta {
+  background: linear-gradient(180deg, rgba(192,40,128,0.25) 0%, rgba(140,24,90,0.16) 100%);
+  border-color: rgba(192,40,128,0.38);
+  color: #E060B8;
+}
+
+/* Dark fallback */
+.node-header-dark {
+  background: linear-gradient(180deg, rgba(60,30,25,0.8) 0%, rgba(40,20,18,0.9) 100%);
+  border-color: rgba(90,50,40,0.6);
+  color: var(--ac-gray);
+}
+
+/* ═══════════════════════════════════════
+   RETRO INPUTS
+═══════════════════════════════════════ */
+.retro-input {
+  background: #180E0C !important;
+  border: 1.5px solid #3D2218 !important;
+  border-radius: 6px !important;
+  color: var(--ac-text) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.78rem !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.retro-input:focus {
+  border-color: #F04D07 !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 0 2px rgba(240,77,7,0.18) !important;
+  outline: none !important;
+}
+.retro-input::placeholder {
+  color: var(--ac-text-mute) !important;
+}
+
+/* ═══════════════════════════════════════
+   REACTIVE FLOW OVERRIDES
+═══════════════════════════════════════ */
+.react-flow__background {
+  background-color: var(--ac-bg) !important;
+  background-image:
+    radial-gradient(circle, rgba(240,77,7,0.18) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+}
+
+.react-flow__node {
+  border-radius: 10px;
+  will-change: transform;
+  transform-origin: 0 0;
+  /* extra retro depth on canvas nodes */
+  filter: drop-shadow(0 8px 3px rgba(0,0,0,0.5));
+}
+.react-flow__node.selected > * {
+  outline: 2px solid #F04D07 !important;
+  outline-offset: 2px;
+}
+
+/* Edges */
+.react-flow__edge-path {
+  stroke: #F04D07 !important;
+  stroke-width: 2 !important;
+  shape-rendering: geometricPrecision;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(240,77,7,0.5));
+}
+.react-flow__edge-path:hover {
+  stroke: #FF8050 !important;
+  stroke-width: 2.5 !important;
+}
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 8 4;
+  animation: dashdraw 1s linear infinite;
+}
+.react-flow__connection-path {
+  stroke: #F04D07 !important;
+  stroke-width: 2 !important;
+  stroke-dasharray: 6 3;
+  shape-rendering: geometricPrecision;
+  filter: drop-shadow(0 0 4px rgba(240,77,7,0.6));
+}
+
+/* Handles */
+.react-flow__handle {
+  width: 16px !important;
+  height: 16px !important;
+  background: #F04D07 !important;
+  border: 2px solid #1F1B1E !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 6px rgba(240,77,7,0.4) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  cursor: crosshair !important;
+}
+.react-flow__handle:hover,
+.react-flow__handle.connectable:hover {
+  background: #FF8050 !important;
+  transform: scale(1.45) !important;
+  box-shadow: 0 0 14px rgba(240,77,7,0.7) !important;
+}
+.react-flow__handle.connectingto {
+  background: #FFB040 !important;
+  transform: scale(1.6) !important;
+  box-shadow: 0 0 20px rgba(255,176,64,0.8) !important;
+}
+
+/* Controls */
+.react-flow__controls {
+  background: var(--ac-surface) !important;
+  border: 1.5px solid var(--ac-border-lt) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 0 #0A0604, 0 5px 0 1px #050202 !important;
+}
+.react-flow__controls-button {
+  background: var(--ac-surface) !important;
+  border-bottom: 1px solid var(--ac-border) !important;
+  color: var(--ac-gray) !important;
+  fill: var(--ac-gray) !important;
+}
+.react-flow__controls-button:hover {
+  background: var(--ac-surface2) !important;
+  fill: var(--ac-orange) !important;
+}
+
+/* Minimap */
+.react-flow__minimap {
+  background: var(--ac-surface) !important;
+  border: 1.5px solid var(--ac-border-lt) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 0 #0A0604 !important;
+}
+.react-flow__minimap-mask {
+  fill: rgba(240,77,7,0.15) !important;
+}
+.react-flow__minimap-node {
+  fill: #F04D07 !important;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════ */
+@keyframes dashdraw {
+  to { stroke-dashoffset: -10; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes pulse-orange {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px #0A0604,
+      0 6px 0 0 #1A0E0C,
+      0 7px 0 1px #080402,
+      0 0 12px rgba(240,77,7,0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px #0A0604,
+      0 6px 0 0 #1A0E0C,
+      0 7px 0 1px #080402,
+      0 0 30px rgba(240,77,7,0.6),
+      0 0 60px rgba(240,77,7,0.2);
+  }
+}
+.node-generating {
+  animation: pulse-orange 1.4s ease-in-out infinite;
+}
+
+@keyframes retro-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.85; }
+  94% { opacity: 1; }
+}
+.retro-flicker {
+  animation: retro-flicker 4s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════
+   CHIP TAGS  (quick suggestion buttons)
+═══════════════════════════════════════ */
+.retro-chip {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #2A1810;
+  border: 1px solid #4A2818;
+  color: #C07050;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  box-shadow: 0 2px 0 #120A06, inset 0 1px 0 rgba(255,120,50,0.08);
+  user-select: none;
+}
+.retro-chip:hover {
+  background: #381E10;
+  border-color: #6A3820;
+  color: #E09070;
+  box-shadow: 0 2px 0 #120A06, 0 0 8px rgba(240,77,7,0.15), inset 0 1px 0 rgba(255,120,50,0.12);
+}
+.retro-chip:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #120A06;
+}
+
+/* ═══════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--ac-bg); }
+::-webkit-scrollbar-thumb { background: #3D2C28; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #F04D07; }
