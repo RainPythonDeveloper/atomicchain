@@ -2,10 +2,11 @@
 
 import { Handle, Position, type NodeProps, useHandleConnections, useNodesData } from "@xyflow/react";
 import { GitMerge } from "lucide-react";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 import { useEffect } from "react";
 import { useAtomicStore } from "@/lib/store";
 
-export function CombinerNode({ id }: NodeProps) {
+export function CombinerNode({ id, selected: isNodeSelected }: NodeProps) {
   const updateNodeData = useAtomicStore((s) => s.updateNodeData);
   const connections = useHandleConnections({ type: "target" });
   const connectedIds = connections.map((c) => c.source);
@@ -23,6 +24,7 @@ export function CombinerNode({ id }: NodeProps) {
       <div className="retro-node-header node-drag-handle node-header-gold">
         <GitMerge size={16} />
         <span>Combiner</span>
+        <NodeDeleteButton id={id} show={!!isNodeSelected} pushRight />
       </div>
       <div style={{ padding: "14px" }}>
         <div style={{

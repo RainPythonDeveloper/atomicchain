@@ -1,7 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useAtomicStore } from "@/lib/store";
-import { MessageSquare, MinusCircle, Expand, Palette, GitMerge, Zap, ImageIcon, Sparkles } from "lucide-react";
+import {
+  MessageSquare, MinusCircle, Expand, Palette, GitMerge, Zap,
+  ImageIcon, Sparkles, RectangleHorizontal, Camera, CloudSun,
+  PenLine, Sun, Pipette, Layers, Film, Dices, Gem, Hourglass, Wand2,
+  CircleHelp,
+} from "lucide-react";
+import { NodeInfoModal } from "./NodeInfoModal";
 
 export const SIDEBAR_NODE_TYPES = [
   {
@@ -76,10 +83,119 @@ export const SIDEBAR_NODE_TYPES = [
     shadow: "#480A30",
     defaultData: { improvement: "", refinedPrompt: "", isLoading: false },
   },
+  {
+    type: "videoNode",
+    label: "Video",
+    description: "Animate image → MP4",
+    icon: Film,
+    accent: "#06B6D4",
+    shadow: "#04303F",
+    defaultData: { motionPrompt: "", resolution: "720_16_9", frames: 57, status: "idle", videoBase64: null },
+  },
+  {
+    type: "aspectRatioNode",
+    label: "Aspect Ratio",
+    description: "Frame format",
+    icon: RectangleHorizontal,
+    accent: "#0EA5E9",
+    shadow: "#052840",
+    defaultData: { ratio: "square", size: "1024x1024", prompt: "square composition" },
+  },
+  {
+    type: "cameraNode",
+    label: "Camera Shot",
+    description: "Shot & angle",
+    icon: Camera,
+    accent: "#F59E0B",
+    shadow: "#4A2E00",
+    defaultData: { shot: "", angle: "", modifier: "" },
+  },
+  {
+    type: "moodNode",
+    label: "Mood",
+    description: "Atmosphere & vibe",
+    icon: CloudSun,
+    accent: "#6366F1",
+    shadow: "#1A1A60",
+    defaultData: { time: "", weather: "", vibe: "", modifier: "" },
+  },
+  {
+    type: "artistStyleNode",
+    label: "Artist Style",
+    description: "Art references",
+    icon: PenLine,
+    accent: "#E11D48",
+    shadow: "#4A0618",
+    defaultData: { artist: "", era: "Classic", modifier: "" },
+  },
+  {
+    type: "lightingNode",
+    label: "Lighting",
+    description: "Light setup",
+    icon: Sun,
+    accent: "#FB923C",
+    shadow: "#4A1800",
+    defaultData: { lighting: "", category: "Natural", modifier: "" },
+  },
+  {
+    type: "colorPaletteNode",
+    label: "Color Palette",
+    description: "Dominant colors",
+    icon: Pipette,
+    accent: "#9333EA",
+    shadow: "#2A0850",
+    defaultData: { colors: ["#F04D07", "#1F1B1E", "#989999"], modifier: "" },
+  },
+  {
+    type: "batchNode",
+    label: "Batch Generate",
+    description: "Multiple variations",
+    icon: Layers,
+    accent: "#65A30D",
+    shadow: "#1A3004",
+    defaultData: { count: 2 },
+  },
+  {
+    type: "diceNode",
+    label: "Surprise Me",
+    description: "Random scene idea",
+    icon: Dices,
+    accent: "#EC4899",
+    shadow: "#500724",
+    defaultData: { prompt: "" },
+  },
+  {
+    type: "materialNode",
+    label: "Made Of…",
+    description: "Glass, LEGO, origami",
+    icon: Gem,
+    accent: "#5EEAD4",
+    shadow: "#042A22",
+    defaultData: { material: "", modifier: "" },
+  },
+  {
+    type: "timeMachineNode",
+    label: "Time Machine",
+    description: "10000 BC → year 3000",
+    icon: Hourglass,
+    accent: "#C2702D",
+    shadow: "#2A1808",
+    defaultData: { era: "", modifier: "" },
+  },
+  {
+    type: "fxNode",
+    label: "Special FX",
+    description: "Glitch, hologram, x-ray",
+    icon: Wand2,
+    accent: "#9EF01A",
+    shadow: "#1A2A04",
+    defaultData: { effects: [], modifier: "" },
+  },
 ];
 
 export function NodeSidebar() {
   const addNode = useAtomicStore((s) => s.addNode);
+  const [infoNode, setInfoNode] = useState<(typeof SIDEBAR_NODE_TYPES)[number] | null>(null);
 
   const onDragStart = (e: React.DragEvent, nodeType: string) => {
     e.dataTransfer.setData("application/atomicchain-node", nodeType);
@@ -125,7 +241,7 @@ export function NodeSidebar() {
         {SIDEBAR_NODE_TYPES.map((node) => {
           const Icon = node.icon;
           return (
-            <button
+            <div
               key={node.type}
               draggable
               onDragStart={(e) => onDragStart(e, node.type)}
@@ -217,7 +333,39 @@ export function NodeSidebar() {
                   {node.description}
                 </div>
               </div>
-            </button>
+
+              {/* Info popup trigger */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setInfoNode(node); }}
+                draggable={false}
+                onDragStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                title={`How ${node.label} works`}
+                style={{
+                  flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 22, height: 22, borderRadius: 6,
+                  background: "linear-gradient(180deg, #302628 0%, #272122 100%)",
+                  border: "1.5px solid #4A3028",
+                  borderBottomColor: "#1A1010",
+                  color: "#706060",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 0 #100806, inset 0 1px 0 rgba(255,160,80,0.06)",
+                  transition: "color 0.1s, border-color 0.1s, box-shadow 0.1s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = node.accent;
+                  e.currentTarget.style.borderColor = node.accent + "70";
+                  e.currentTarget.style.boxShadow = `0 2px 0 #100806, 0 0 8px ${node.accent}30`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "#706060";
+                  e.currentTarget.style.borderColor = "#4A3028";
+                  e.currentTarget.style.boxShadow = "0 2px 0 #100806, inset 0 1px 0 rgba(255,160,80,0.06)";
+                }}
+              >
+                <CircleHelp size={12} />
+              </button>
+            </div>
           );
         })}
       </div>
@@ -231,6 +379,17 @@ export function NodeSidebar() {
           ⌘+Enter → run<br />⌘+S → save
         </p>
       </div>
+
+      {infoNode && (
+        <NodeInfoModal
+          nodeType={infoNode.type}
+          label={infoNode.label}
+          icon={infoNode.icon}
+          accent={infoNode.accent}
+          shadow={infoNode.shadow}
+          onClose={() => setInfoNode(null)}
+        />
+      )}
     </div>
   );
 }

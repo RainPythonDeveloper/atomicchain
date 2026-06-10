@@ -229,6 +229,11 @@
   border-radius: 8px;
 }
 
+@keyframes nodeDeleteFadeIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* ═══════════════════════════════════════
    RETRO NODE CARDS
 ═══════════════════════════════════════ */
@@ -285,6 +290,13 @@
   color: #40C8B8;
 }
 
+/* Video — Cyan */
+.node-header-cyan {
+  background: linear-gradient(180deg, rgba(6,182,212,0.25) 0%, rgba(8,120,150,0.16) 100%);
+  border-color: rgba(6,182,212,0.40);
+  color: #38D6F0;
+}
+
 /* Style — Violet */
 .node-header-violet {
   background: linear-gradient(180deg, rgba(138,63,208,0.25) 0%, rgba(95,38,160,0.16) 100%);
@@ -320,11 +332,88 @@
   color: #E060B8;
 }
 
+/* Aspect Ratio — Sky Blue */
+.node-header-sky {
+  background: linear-gradient(180deg, rgba(14,165,233,0.25) 0%, rgba(8,116,165,0.16) 100%);
+  border-color: rgba(14,165,233,0.38);
+  color: #38BDF8;
+}
+
+/* Camera — Amber Gold */
+.node-header-amber {
+  background: linear-gradient(180deg, rgba(245,158,11,0.25) 0%, rgba(180,110,6,0.16) 100%);
+  border-color: rgba(245,158,11,0.38);
+  color: #FCD34D;
+}
+
+/* Mood — Indigo */
+.node-header-indigo {
+  background: linear-gradient(180deg, rgba(99,102,241,0.25) 0%, rgba(67,68,180,0.16) 100%);
+  border-color: rgba(99,102,241,0.38);
+  color: #A5B4FC;
+}
+
+/* Artist — Rose */
+.node-header-rose {
+  background: linear-gradient(180deg, rgba(225,29,72,0.25) 0%, rgba(159,18,57,0.16) 100%);
+  border-color: rgba(225,29,72,0.38);
+  color: #FB7185;
+}
+
+/* Batch — Lime */
+.node-header-lime {
+  background: linear-gradient(180deg, rgba(101,163,13,0.25) 0%, rgba(63,98,18,0.16) 100%);
+  border-color: rgba(101,163,13,0.38);
+  color: #A3E635;
+}
+
+/* Color Palette — Purple */
+.node-header-purple {
+  background: linear-gradient(180deg, rgba(147,51,234,0.25) 0%, rgba(100,30,170,0.16) 100%);
+  border-color: rgba(147,51,234,0.38);
+  color: #C084FC;
+}
+
+/* Lighting — Warm Amber */
+.node-header-warm {
+  background: linear-gradient(180deg, rgba(251,146,60,0.25) 0%, rgba(194,100,30,0.16) 100%);
+  border-color: rgba(251,146,60,0.38);
+  color: #FCA57A;
+}
+
 /* Dark fallback */
 .node-header-dark {
   background: linear-gradient(180deg, rgba(60,30,25,0.8) 0%, rgba(40,20,18,0.9) 100%);
   border-color: rgba(90,50,40,0.6);
   color: var(--ac-gray);
+}
+
+/* Dice — Hot Pink */
+.node-header-pink {
+  background: linear-gradient(180deg, rgba(236,72,153,0.25) 0%, rgba(160,40,100,0.16) 100%);
+  border-color: rgba(236,72,153,0.40);
+  color: #F87BBE;
+}
+
+/* Material — Mint */
+.node-header-mint {
+  background: linear-gradient(180deg, rgba(94,234,212,0.22) 0%, rgba(40,150,130,0.14) 100%);
+  border-color: rgba(94,234,212,0.36);
+  color: #7DEFD8;
+}
+
+/* Time Machine — Bronze */
+.node-header-bronze {
+  background: linear-gradient(180deg, rgba(194,112,45,0.28) 0%, rgba(130,70,25,0.18) 100%);
+  border-color: rgba(194,112,45,0.42);
+  color: #E0995A;
+}
+
+/* FX — Acid Green */
+.node-header-acid {
+  background: linear-gradient(180deg, rgba(158,240,26,0.20) 0%, rgba(100,160,15,0.13) 100%);
+  border-color: rgba(158,240,26,0.34);
+  color: #BBF34A;
 }
 
 /* ═══════════════════════════════════════
@@ -371,19 +460,17 @@
   outline-offset: 2px;
 }
 
-/* Edges */
+/* Edges — default fallback (custom edge controls its own styles via inline) */
 .react-flow__edge-path {
-  stroke: #F04D07 !important;
-  stroke-width: 2 !important;
   shape-rendering: geometricPrecision;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 3px rgba(240,77,7,0.5));
-}
-.react-flow__edge-path:hover {
-  stroke: #FF8050 !important;
-  stroke-width: 2.5 !important;
 }
 .react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 8 4;
+  animation: dashdraw 1s linear infinite;
+}
+/* Animated class for CustomEdge BaseEdge path */
+.ac-edge-animated {
   stroke-dasharray: 8 4;
   animation: dashdraw 1s linear infinite;
 }

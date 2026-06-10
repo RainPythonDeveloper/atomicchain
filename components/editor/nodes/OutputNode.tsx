@@ -3,8 +3,9 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { ImageIcon, Download, Copy, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 
-export function OutputNode({ id: _id, data }: NodeProps) {
+export function OutputNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const status         = (data.status        as string)      ?? "idle";
   const imageBase64    = data.imageBase64    as string | null;
   const size           = (data.size          as string)      ?? "";
@@ -35,6 +36,7 @@ export function OutputNode({ id: _id, data }: NodeProps) {
             {size}
           </span>
         )}
+        <NodeDeleteButton id={id} show={!!isNodeSelected} pushRight={!size} />
       </div>
 
       <div style={{ padding: "14px" }}>

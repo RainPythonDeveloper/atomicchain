@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   type Node,
   type Edge,
@@ -36,6 +37,7 @@ interface AtomicStore {
   updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
 
   addNode: (type: string, defaultData: Record<string, unknown>, position?: { x: number; y: number }) => void;
+  deleteNode: (nodeId: string) => void;
   runWorkflow: () => Promise<void>;
   saveWorkflow: () => void;
   loadWorkflow: () => void;
@@ -50,36 +52,35 @@ const defaultNodes: Node[] = [
     id: "prompt-1",
     type: "promptNode",
     dragHandle: DRAG_HANDLE,
-    position: { x: 80, y: 200 },
+    position: { x: 80, y: 100 },
     data: { prompt: "A futuristic city in the mountains at sunrise, cinematic lighting, ultra detailed" },
   },
   {
     id: "size-1",
     type: "sizeNode",
     dragHandle: DRAG_HANDLE,
-    position: { x: 80, y: 420 },
+    position: { x: 80, y: 430 },
     data: { size: "1024x1024" },
   },
   {
     id: "generate-1",
     type: "generateNode",
     dragHandle: DRAG_HANDLE,
-    position: { x: 420, y: 280 },
+    position: { x: 560, y: 250 },
     data: { status: "idle" },
   },
   {
     id: "output-1",
     type: "outputNode",
     dragHandle: DRAG_HANDLE,
-    position: { x: 760, y: 200 },
+    position: { x: 910, y: 160 },
     data: { imageBase64: null, status: "idle" },
   },
 ];
 
 const EDGE_DEFAULTS = {
-  type: "smoothstep" as const,
+  type: "ac-edge",
   animated: true,
-  style: { stroke: "#6e56cf", strokeWidth: 2 },
 };
 
 const defaultEdges: Edge[] = [
@@ -88,184 +89,228 @@ const defaultEdges: Edge[] = [
   { id: "e-gen-out",   source: "generate-1", target: "output-1",  sourceHandle: "image-out",  targetHandle: "image-in",  ...EDGE_DEFAULTS },
 ];
 
-export const useAtomicStore = create<AtomicStore>((set, get) => ({
-  nodes: defaultNodes,
-  edges: defaultEdges,
-  isRunning: false,
-  generationStatus: "idle",
-  gallery: [],
+function loadGallery(): GenerationResult[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("ac-gallery");
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
 
-  onNodesChange: (changes) =>
-    set((s) => ({ nodes: applyNodeChanges(changes, s.nodes) })),
+export const useAtomicStore = create<AtomicStore>()(
+  persist(
+    (set, get) => ({
+      nodes: defaultNodes,
+      edges: defaultEdges,
+      isRunning: false,
+      generationStatus: "idle",
+      gallery: loadGallery(),
 
-  onEdgesChange: (changes) =>
-    set((s) => ({ edges: applyEdgeChanges(changes, s.edges) })),
+      onNodesChange: (changes) =>
+        set((s) => ({ nodes: applyNodeChanges(changes, s.nodes) })),
 
-  onConnect: (connection) =>
-    set((s) => ({
-      edges: addEdge({
-        ...connection,
-        type: "smoothstep",
-        animated: true,
-        style: { stroke: "#6e56cf", strokeWidth: 2 },
-      }, s.edges),
-    })),
+      onEdgesChange: (changes) =>
+        set((s) => ({ edges: applyEdgeChanges(changes, s.edges) })),
 
-  setNodes: (nodes) => set({ nodes }),
-  setEdges: (edges) => set({ edges }),
+      onConnect: (connection) =>
+        set((s) => ({
+          edges: addEdge({ ...connection, type: "ac-edge", animated: true }, s.edges),
+        })),
 
-  addNode: (type, defaultData, position) => {
-    const { nodes } = get();
-    const id = `${type}-${Date.now()}`;
-    let x = position?.x ?? 200;
-    let y = position?.y ?? 200;
-    if (!position && nodes.length > 0) {
-      const maxX = Math.max(...nodes.map((n) => n.position?.x ?? 0));
-      const avgY = nodes.reduce((sum, n) => sum + (n.position?.y ?? 0), 0) / nodes.length;
-      x = maxX + 320;
-      y = avgY;
-    }
-    const newNode: Node = {
-      id,
-      type,
-      dragHandle: DRAG_HANDLE,
-      position: { x, y },
-      data: { ...defaultData },
-    };
-    set((s) => ({ nodes: [...s.nodes, newNode] }));
-  },
+      setNodes: (nodes) => set({ nodes }),
+      setEdges: (edges) => set({ edges }),
 
-  updateNodeData: (nodeId, data) =>
-    set((s) => ({
-      nodes: s.nodes.map((n) =>
-        n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n
-      ),
-    })),
-
-  runWorkflow: async () => {
-    const { nodes, edges, updateNodeData } = get();
-    set({ isRunning: true, generationStatus: "generating" });
-
-    // Find ALL generate nodes — run each pipeline independently
-    const genNodes = nodes.filter((n) => n.type === "generateNode");
-    if (genNodes.length === 0) {
-      set({ isRunning: false, generationStatus: "error" });
-      return;
-    }
-
-    let anyError = false;
-
-    for (const genNode of genNodes) {
-      let prompt = "";
-      let negativePrompt = "";
-      let size = "1024x1024";
-      let styleModifier = "";
-
-      // Collect inputs from every node connected to this GenerateNode
-      for (const edge of edges) {
-        if (edge.target !== genNode.id) continue;
-        const src = nodes.find((n) => n.id === edge.source);
-        if (!src) continue;
-
-        if (src.type === "promptNode") {
-          prompt = (src.data.prompt as string) || "";
-        } else if (src.type === "negativeNode") {
-          negativePrompt = (src.data.prompt as string) || "";
-        } else if (src.type === "sizeNode") {
-          size = (src.data.size as string) || "1024x1024";
-        } else if (src.type === "styleNode") {
-          styleModifier = (src.data.styleModifier as string) || "";
-        } else if (src.type === "combinerNode") {
-          prompt = (src.data.combined as string) || prompt;
-        } else if (src.type === "refineNode") {
-          const refined = (src.data.refinedPrompt as string) || "";
-          const improvement = (src.data.improvement as string) || "";
-          if (refined) prompt = refined;
-          else if (improvement) prompt = prompt ? `${prompt}, ${improvement}` : improvement;
+      addNode: (type, defaultData, position) => {
+        const { nodes } = get();
+        const id = `${type}-${Date.now()}`;
+        let x = position?.x ?? 200;
+        let y = position?.y ?? 200;
+        if (!position && nodes.length > 0) {
+          const maxX = Math.max(...nodes.map((n) => n.position?.x ?? 0));
+          const avgY = nodes.reduce((sum, n) => sum + (n.position?.y ?? 0), 0) / nodes.length;
+          x = maxX + 320;
+          y = avgY;
         }
-      }
+        const newNode: Node = {
+          id,
+          type,
+          dragHandle: DRAG_HANDLE,
+          position: { x, y },
+          data: { ...defaultData },
+        };
+        set((s) => ({ nodes: [...s.nodes, newNode] }));
+      },
 
-      if (styleModifier && prompt) prompt = `${prompt}, ${styleModifier}`;
+      deleteNode: (nodeId) =>
+        set((s) => ({
+          nodes: s.nodes.filter((n) => n.id !== nodeId),
+          edges: s.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+        })),
 
-      // Skip this GenerateNode if there's no prompt at all
-      if (!prompt.trim()) continue;
+      updateNodeData: (nodeId, data) =>
+        set((s) => ({
+          nodes: s.nodes.map((n) =>
+            n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n
+          ),
+        })),
 
-      updateNodeData(genNode.id, { status: "generating" });
+      runWorkflow: async () => {
+        const { nodes, edges, updateNodeData } = get();
+        set({ isRunning: true, generationStatus: "generating" });
 
-      // Find the OutputNode connected to this GenerateNode (match by target node type)
-      const outputEdge = edges.find(
-        (e) => e.source === genNode.id && nodes.find((n) => n.id === e.target)?.type === "outputNode"
-      );
-      const outputNode = outputEdge ? nodes.find((n) => n.id === outputEdge.target) : null;
-
-      if (outputNode) {
-        updateNodeData(outputNode.id, { status: "generating" });
-      }
-
-      try {
-        const res = await fetch("/api/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, negative_prompt: negativePrompt, size }),
-        });
-
-        const data = await res.json();
-        if (!res.ok || data.error) throw new Error(data.error || "Generation failed");
-
-        const displayPrompt = data.translatedPrompt ?? prompt;
-        const originalPrompt = data.originalPrompt ?? null;
-
-        updateNodeData(genNode.id, { status: "done" });
-
-        if (outputNode) {
-          updateNodeData(outputNode.id, {
-            imageBase64: data.imageBase64,
-            size: data.size,
-            prompt: displayPrompt,
-            originalPrompt,
-            status: "done",
-          });
+        const genNodes = nodes.filter((n) => n.type === "generateNode");
+        if (genNodes.length === 0) {
+          set({ isRunning: false, generationStatus: "error" });
+          return;
         }
 
-        get().addToGallery({
-          imageBase64: data.imageBase64,
-          size: data.size,
-          prompt: displayPrompt,
-          timestamp: Date.now(),
-        });
-      } catch {
-        updateNodeData(genNode.id, { status: "error" });
-        if (outputNode) updateNodeData(outputNode.id, { status: "idle" });
-        anyError = true;
-      }
-    }
+        let anyError = false;
 
-    set({ isRunning: false, generationStatus: anyError ? "error" : "done" });
-  },
+        for (const genNode of genNodes) {
+          let prompt = "";
+          let negativePrompt = "";
+          let size = "1024x1024";
+          let styleModifier = "";
 
-  saveWorkflow: () => {
-    const { nodes, edges } = get();
-    const workflow = { nodes, edges, version: 1, savedAt: Date.now() };
-    localStorage.setItem("ac-workflow", JSON.stringify(workflow));
-  },
+          const modifiers: string[] = [];
+          let batchCount = 1;
 
-  loadWorkflow: () => {
-    const raw = localStorage.getItem("ac-workflow");
-    if (!raw) return;
-    try {
-      const { nodes, edges } = JSON.parse(raw);
-      set({ nodes, edges });
-    } catch {
-      // ignore corrupt data
-    }
-  },
+          for (const edge of edges) {
+            if (edge.target !== genNode.id) continue;
+            const src = nodes.find((n) => n.id === edge.source);
+            if (!src) continue;
 
-  clearCanvas: () => set({ nodes: defaultNodes, edges: defaultEdges, generationStatus: "idle" }),
+            if (src.type === "promptNode" || src.type === "diceNode") {
+              prompt = (src.data.prompt as string) || prompt;
+            } else if (src.type === "negativeNode") {
+              negativePrompt = (src.data.prompt as string) || "";
+            } else if (src.type === "sizeNode") {
+              size = (src.data.size as string) || "1024x1024";
+            } else if (src.type === "styleNode") {
+              styleModifier = (src.data.styleModifier as string) || "";
+            } else if (src.type === "combinerNode") {
+              prompt = (src.data.combined as string) || prompt;
+            } else if (src.type === "refineNode") {
+              const refined = (src.data.refinedPrompt as string) || "";
+              const improvement = (src.data.improvement as string) || "";
+              if (refined) prompt = refined;
+              else if (improvement) prompt = prompt ? `${prompt}, ${improvement}` : improvement;
+            } else if (src.type === "aspectRatioNode") {
+              size = (src.data.size as string) || size;
+              const aspectPrompt = (src.data.prompt as string) || "";
+              if (aspectPrompt) modifiers.push(aspectPrompt);
+            } else if (src.type === "cameraNode") {
+              const m = (src.data.modifier as string) || "";
+              if (m) modifiers.push(m);
+            } else if (src.type === "moodNode") {
+              const m = (src.data.modifier as string) || "";
+              if (m) modifiers.push(m);
+            } else if (src.type === "artistStyleNode") {
+              const m = (src.data.modifier as string) || "";
+              if (m) modifiers.push(m);
+            } else if (src.type === "lightingNode") {
+              const m = (src.data.modifier as string) || "";
+              if (m) modifiers.push(m);
+            } else if (src.type === "colorPaletteNode") {
+              const m = (src.data.modifier as string) || "";
+              if (m) modifiers.push(m);
+            } else if (src.type === "materialNode" || src.type === "timeMachineNode" || src.type === "fxNode") {
+              const m = (src.data.modifier as string) || "";
+              if (m) modifiers.push(m);
+            } else if (src.type === "batchNode") {
+              batchCount = Math.max(1, Math.min(6, (src.data.count as number) || 1));
+            }
+          }
 
-  addToGallery: (result) =>
-    set((s) => {
-      const gallery = [result, ...s.gallery].slice(0, 50);
-      try { localStorage.setItem("ac-gallery", JSON.stringify(gallery)); } catch {}
-      return { gallery };
+          if (styleModifier && prompt) prompt = `${prompt}, ${styleModifier}`;
+          if (modifiers.length > 0) prompt = prompt ? `${prompt}, ${modifiers.join(", ")}` : modifiers.join(", ");
+
+          if (!prompt.trim()) continue;
+
+          updateNodeData(genNode.id, { status: "generating" });
+
+          const outputEdge = edges.find(
+            (e) => e.source === genNode.id && nodes.find((n) => n.id === e.target)?.type === "outputNode"
+          );
+          const outputNode = outputEdge ? nodes.find((n) => n.id === outputEdge.target) : null;
+          if (outputNode) updateNodeData(outputNode.id, { status: "generating" });
+
+          try {
+            for (let i = 0; i < batchCount; i++) {
+              const res = await fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt, negative_prompt: negativePrompt, size }),
+              });
+
+              const data = await res.json();
+              if (!res.ok || data.error) throw new Error(data.error || "Generation failed");
+
+              const displayPrompt = data.translatedPrompt ?? prompt;
+              const originalPrompt = data.originalPrompt ?? null;
+
+              if (i === batchCount - 1) {
+                updateNodeData(genNode.id, { status: "done" });
+                if (outputNode) {
+                  updateNodeData(outputNode.id, {
+                    imageBase64: data.imageBase64,
+                    size: data.size,
+                    prompt: displayPrompt,
+                    originalPrompt,
+                    status: "done",
+                  });
+                }
+              }
+
+              get().addToGallery({
+                imageBase64: data.imageBase64,
+                size: data.size,
+                prompt: batchCount > 1 ? `[${i + 1}/${batchCount}] ${displayPrompt}` : displayPrompt,
+                timestamp: Date.now() + i,
+              });
+            }
+          } catch {
+            updateNodeData(genNode.id, { status: "error" });
+            if (outputNode) updateNodeData(outputNode.id, { status: "idle" });
+            anyError = true;
+          }
+        }
+
+        set({ isRunning: false, generationStatus: anyError ? "error" : "done" });
+      },
+
+      saveWorkflow: () => {
+        const { nodes, edges } = get();
+        const workflow = { nodes, edges, version: 1, savedAt: Date.now() };
+        localStorage.setItem("ac-workflow", JSON.stringify(workflow));
+      },
+
+      loadWorkflow: () => {
+        const raw = localStorage.getItem("ac-workflow");
+        if (!raw) return;
+        try {
+          const { nodes, edges } = JSON.parse(raw);
+          set({ nodes, edges });
+        } catch {
+          // ignore corrupt data
+        }
+      },
+
+      clearCanvas: () => set({ nodes: defaultNodes, edges: defaultEdges, generationStatus: "idle" }),
+
+      addToGallery: (result) =>
+        set((s) => {
+          const gallery = [result, ...s.gallery].slice(0, 50);
+          try { localStorage.setItem("ac-gallery", JSON.stringify(gallery)); } catch {}
+          return { gallery };
+        }),
     }),
-}));
+    {
+      name: "ac-workspace",
+      partialize: (state) => ({
+        nodes: state.nodes,
+        edges: state.edges,
+      }),
+    }
+  )
+);

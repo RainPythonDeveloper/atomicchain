@@ -17,6 +17,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useAtomicStore } from "@/lib/store";
 import { SIDEBAR_NODE_TYPES } from "./NodeSidebar";
+import { CustomEdge } from "./CustomEdge";
 import { PromptNode } from "./nodes/PromptNode";
 import { NegativeNode } from "./nodes/NegativeNode";
 import { SizeNode } from "./nodes/SizeNode";
@@ -25,6 +26,18 @@ import { CombinerNode } from "./nodes/CombinerNode";
 import { GenerateNode } from "./nodes/GenerateNode";
 import { OutputNode } from "./nodes/OutputNode";
 import { RefineNode } from "./nodes/RefineNode";
+import { AspectRatioNode } from "./nodes/AspectRatioNode";
+import { CameraNode } from "./nodes/CameraNode";
+import { MoodNode } from "./nodes/MoodNode";
+import { ArtistStyleNode } from "./nodes/ArtistStyleNode";
+import { LightingNode } from "./nodes/LightingNode";
+import { ColorPaletteNode } from "./nodes/ColorPaletteNode";
+import { BatchNode } from "./nodes/BatchNode";
+import { VideoNode } from "./nodes/VideoNode";
+import { DiceNode } from "./nodes/DiceNode";
+import { MaterialNode } from "./nodes/MaterialNode";
+import { TimeMachineNode } from "./nodes/TimeMachineNode";
+import { FxNode } from "./nodes/FxNode";
 
 const NODE_TYPES = {
   promptNode: PromptNode,
@@ -35,6 +48,18 @@ const NODE_TYPES = {
   generateNode: GenerateNode,
   outputNode: OutputNode,
   refineNode: RefineNode,
+  aspectRatioNode: AspectRatioNode,
+  cameraNode: CameraNode,
+  moodNode: MoodNode,
+  artistStyleNode: ArtistStyleNode,
+  lightingNode: LightingNode,
+  colorPaletteNode: ColorPaletteNode,
+  batchNode: BatchNode,
+  videoNode: VideoNode,
+  diceNode: DiceNode,
+  materialNode: MaterialNode,
+  timeMachineNode: TimeMachineNode,
+  fxNode: FxNode,
 };
 
 // Smooth animated connection line while dragging
@@ -57,15 +82,19 @@ function CustomConnectionLine({
   );
 }
 
+const EDGE_TYPES = {
+  "ac-edge": CustomEdge,
+};
+
 const DEFAULT_EDGE_OPTIONS = {
-  type: "smoothstep" as const,
+  type: "ac-edge",
   animated: true,
-  style: { stroke: "#6e56cf", strokeWidth: 2 },
 };
 
 function NodeCanvasInner() {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode } = useAtomicStore();
   const nodeTypes = useMemo(() => NODE_TYPES, []);
+  const edgeTypes = useMemo(() => EDGE_TYPES, []);
   const { screenToFlowPosition } = useReactFlow();
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -102,6 +131,7 @@ function NodeCanvasInner() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onDrop={onDrop}
         onDragOver={onDragOver}
         // Connections

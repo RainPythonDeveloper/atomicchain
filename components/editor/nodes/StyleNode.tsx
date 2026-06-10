@@ -3,6 +3,7 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useAtomicStore } from "@/lib/store";
 import { Palette } from "lucide-react";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 
 const STYLES = [
   { label: "Realistic",  value: "photorealistic, 8k, detailed" },
@@ -15,7 +16,7 @@ const STYLES = [
   { label: "Minimal",    value: "minimalist, clean, simple composition" },
 ];
 
-export function StyleNode({ id, data }: NodeProps) {
+export function StyleNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const updateNodeData = useAtomicStore((s) => s.updateNodeData);
   const selected = (data.styleModifier as string) ?? "";
 
@@ -24,6 +25,7 @@ export function StyleNode({ id, data }: NodeProps) {
       <div className="retro-node-header node-drag-handle node-header-violet">
         <Palette size={16} />
         <span>Style</span>
+        <NodeDeleteButton id={id} show={!!isNodeSelected} pushRight />
       </div>
       <div style={{ padding: "12px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
         {STYLES.map((s) => {

@@ -3,8 +3,17 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useAtomicStore } from "@/lib/store";
 import { Zap, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 
-export function GenerateNode({ id, data }: NodeProps) {
+const HANDLE_LABELS = [
+  { id: "prompt-in",   top: "16%", bg: "#2B7FE0", label: "prompt"   },
+  { id: "negative-in", top: "32%", bg: "#C42020", label: "negative"  },
+  { id: "size-in",     top: "48%", bg: "#0A9E8A", label: "size"      },
+  { id: "modifier-in", top: "64%", bg: "#9333EA", label: "modifiers" },
+  { id: "batch-in",    top: "80%", bg: "#65A30D", label: "batch"     },
+];
+
+export function GenerateNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const { runWorkflow, isRunning } = useAtomicStore();
   const status = (data.status as string) ?? "idle";
 
@@ -22,27 +31,29 @@ export function GenerateNode({ id, data }: NodeProps) {
       <div className="retro-node-header node-drag-handle node-header-orange">
         <StatusIcon size={16} className={status === "generating" ? "animate-spin" : ""} />
         <span>Generate</span>
-        <span style={{
-          marginLeft: "auto", fontSize: "0.68rem",
-          color: statusCfg.color, textShadow: `0 0 8px ${statusCfg.color}99`,
-        }}>
+        <span style={{ marginLeft: "auto", fontSize: "0.68rem", color: statusCfg.color, textShadow: `0 0 8px ${statusCfg.color}99` }}>
           {statusCfg.label}
         </span>
+        <NodeDeleteButton id={id} show={!!isNodeSelected} />
       </div>
 
       <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
+        {/* Input labels */}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 3 }}>
+          {HANDLE_LABELS.map((h) => (
+            <div key={h.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: h.bg, flexShrink: 0, boxShadow: `0 0 4px ${h.bg}88` }} />
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "#505050" }}>{h.label}</span>
+            </div>
+          ))}
+        </div>
+
         {/* Progress bar */}
-        <div style={{
-          width: "100%", height: 5, borderRadius: 3,
-          background: "#180E0C", border: "1px solid #2A1410", overflow: "hidden",
-        }}>
+        <div style={{ width: "100%", height: 5, borderRadius: 3, background: "#180E0C", border: "1px solid #2A1410", overflow: "hidden" }}>
           <div style={{
             height: "100%",
             width: status === "done" ? "100%" : status === "generating" ? "65%" : status === "error" ? "25%" : "0%",
-            background: status === "done"
-              ? "linear-gradient(90deg, #0A6E3A, #1A9E5A)"
-              : status === "error" ? "#C42020"
-              : "linear-gradient(90deg, #891A06, #F04D07)",
+            background: status === "done" ? "linear-gradient(90deg,#0A6E3A,#1A9E5A)" : status === "error" ? "#C42020" : "linear-gradient(90deg,#891A06,#F04D07)",
             transition: "width 0.5s ease",
             boxShadow: `0 0 8px ${status === "done" ? "rgba(26,158,90,0.7)" : "rgba(240,77,7,0.6)"}`,
           }} />
@@ -59,10 +70,12 @@ export function GenerateNode({ id, data }: NodeProps) {
         </button>
       </div>
 
-      <Handle type="target" position={Position.Left}  id="prompt-in"   style={{ top: "28%", background: "#2B7FE0", width: 16, height: 16 }} />
-      <Handle type="target" position={Position.Left}  id="negative-in" style={{ top: "50%", background: "#C42020", width: 16, height: 16 }} />
-      <Handle type="target" position={Position.Left}  id="size-in"     style={{ top: "72%", background: "#0A9E8A", width: 16, height: 16 }} />
-      <Handle type="source" position={Position.Right} id="image-out"   style={{ top: "50%", background: "#F04D07", width: 16, height: 16 }} />
+      {HANDLE_LABELS.map((h) => (
+        <Handle key={h.id} type="target" position={Position.Left} id={h.id}
+          style={{ top: h.top, background: h.bg, width: 16, height: 16 }} />
+      ))}
+      <Handle type="source" position={Position.Right} id="image-out"
+        style={{ top: "50%", background: "#F04D07", width: 16, height: 16 }} />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useAtomicStore } from "@/lib/store";
 import { Expand } from "lucide-react";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 
 const SIZES = [
   { label: "256 × 256",   value: "256x256",   tag: "Tiny" },
@@ -11,7 +12,7 @@ const SIZES = [
   { label: "1024 × 1024", value: "1024x1024", tag: "Max" },
 ];
 
-export function SizeNode({ id, data }: NodeProps) {
+export function SizeNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const updateNodeData = useAtomicStore((s) => s.updateNodeData);
   const size = (data.size as string) ?? "1024x1024";
 
@@ -20,6 +21,7 @@ export function SizeNode({ id, data }: NodeProps) {
       <div className="retro-node-header node-drag-handle node-header-teal">
         <Expand size={16} />
         <span>Size</span>
+        <NodeDeleteButton id={id} show={!!isNodeSelected} pushRight />
       </div>
       <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 6 }}>
         {SIZES.map((s) => {

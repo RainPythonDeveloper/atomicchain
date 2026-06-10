@@ -4,8 +4,9 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAtomicStore } from "@/lib/store";
 import { MessageSquare } from "lucide-react";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 
-export function PromptNode({ id, data }: NodeProps) {
+export function PromptNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const updateNodeData = useAtomicStore((s) => s.updateNodeData);
   const prompt = (data.prompt as string) ?? "";
 
@@ -17,6 +18,7 @@ export function PromptNode({ id, data }: NodeProps) {
         <span style={{ marginLeft: "auto", fontSize: "0.68rem", color: "#4060A0" }}>
           {prompt.length} chars
         </span>
+        <NodeDeleteButton id={id} show={!!isNodeSelected} />
       </div>
       <div style={{ padding: "14px" }}>
         <Textarea

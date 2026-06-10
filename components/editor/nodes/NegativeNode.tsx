@@ -4,10 +4,11 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAtomicStore } from "@/lib/store";
 import { MinusCircle } from "lucide-react";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 
 const PRESETS = ["blurry, low quality", "distorted, ugly", "watermark, text", "nsfw, explicit"];
 
-export function NegativeNode({ id, data }: NodeProps) {
+export function NegativeNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const updateNodeData = useAtomicStore((s) => s.updateNodeData);
   const prompt = (data.prompt as string) ?? "";
 
@@ -16,6 +17,7 @@ export function NegativeNode({ id, data }: NodeProps) {
       <div className="retro-node-header node-drag-handle node-header-crimson">
         <MinusCircle size={16} />
         <span>Negative Prompt</span>
+        <NodeDeleteButton id={id} show={!!isNodeSelected} pushRight />
       </div>
       <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 10 }}>
         <Textarea

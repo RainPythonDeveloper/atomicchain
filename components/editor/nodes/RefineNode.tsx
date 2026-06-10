@@ -4,6 +4,7 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useAtomicStore } from "@/lib/store";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { NodeDeleteButton } from "./NodeDeleteButton";
 
 const SUGGESTIONS = [
   "more detailed", "better lighting", "higher quality",
@@ -11,7 +12,7 @@ const SUGGESTIONS = [
   "add fog",       "golden hour",
 ];
 
-export function RefineNode({ id, data }: NodeProps) {
+export function RefineNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const updateNodeData = useAtomicStore((s) => s.updateNodeData);
   const nodes = useAtomicStore((s) => s.nodes);
   const edges = useAtomicStore((s) => s.edges);
@@ -58,6 +59,7 @@ export function RefineNode({ id, data }: NodeProps) {
             </span>
           )}
         </div>
+        <NodeDeleteButton id={id} show={!!isNodeSelected} />
       </div>
 
       <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 11 }}>
