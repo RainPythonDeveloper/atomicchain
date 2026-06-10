@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Markdown & text files (keep only README.md)
+*.md
+!README.md
+*.txt
+
+# Keys & secrets
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
