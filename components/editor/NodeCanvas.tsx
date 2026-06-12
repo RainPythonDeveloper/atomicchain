@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import {
   ReactFlow,
   Background,
@@ -38,6 +38,7 @@ import { DiceNode } from "./nodes/DiceNode";
 import { MaterialNode } from "./nodes/MaterialNode";
 import { TimeMachineNode } from "./nodes/TimeMachineNode";
 import { FxNode } from "./nodes/FxNode";
+import { PromptPreview } from "./PromptPreview";
 
 const NODE_TYPES = {
   promptNode: PromptNode,
@@ -92,10 +93,21 @@ const DEFAULT_EDGE_OPTIONS = {
 };
 
 function NodeCanvasInner() {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode } = useAtomicStore();
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, executingNodes } = useAtomicStore();
   const nodeTypes = useMemo(() => NODE_TYPES, []);
   const edgeTypes = useMemo(() => EDGE_TYPES, []);
   const { screenToFlowPosition } = useReactFlow();
+
+  // Merge executingNodes classes without mutating persisted state
+  const displayNodes = useMemo(
+    () =>
+      nodes.map((n) =>
+        executingNodes.includes(n.id)
+          ? { ...n, className: [n.className, "node-executing"].filter(Boolean).join(" ") }
+          : n
+      ),
+    [nodes, executingNodes]
+  );
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -105,6 +117,23 @@ function NodeCanvasInner() {
       e.preventDefault();
       useAtomicStore.getState().saveWorkflow();
     }
+  }, []);
+
+  // Global Cmd+Shift+F — fullscreen last generated image
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "f") {
+        e.preventDefault();
+        const store = useAtomicStore.getState();
+        const outputNode = store.nodes.find((n) => n.type === "outputNode");
+        const img = outputNode?.data?.imageBase64 as string | null;
+        if (!img) return;
+        // Dispatch custom event that OutputNode listens to
+        window.dispatchEvent(new CustomEvent("ac:fullscreen", { detail: { imageBase64: img, prompt: outputNode?.data?.prompt } }));
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -125,7 +154,7 @@ function NodeCanvasInner() {
   return (
     <div className="flex-1 relative" onKeyDown={onKeyDown} tabIndex={0} style={{ outline: "none" }}>
       <ReactFlow
-        nodes={nodes}
+        nodes={displayNodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -167,9 +196,11 @@ function NodeCanvasInner() {
 
       <div className="absolute top-3 right-3 flex gap-2 pointer-events-none">
         <span className="text-[10px] text-[#6b6b80] bg-[#13131a] border border-[#1e1e2e] px-2 py-1 rounded">
-          ⌘+Enter to run · ⌘+S to save
+          ⌘+Enter to run · ⌘+S to save · ⌘+⇧+F fullscreen
         </span>
       </div>
+
+      <PromptPreview />
     </div>
   );
 }

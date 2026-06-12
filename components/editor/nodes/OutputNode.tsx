@@ -1,8 +1,10 @@
 "use client";
 
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { ImageIcon, Download, Copy, Loader2 } from "lucide-react";
-import Image from "next/image";
+import { ImageIcon, Download, Copy, Loader2, Maximize2, X } from "lucide-react";
+import NextImage from "next/image";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { NodeDeleteButton } from "./NodeDeleteButton";
 
 export function OutputNode({ id, data, selected: isNodeSelected }: NodeProps) {
@@ -11,6 +13,26 @@ export function OutputNode({ id, data, selected: isNodeSelected }: NodeProps) {
   const size           = (data.size          as string)      ?? "";
   const prompt         = (data.prompt        as string)      ?? "";
   const originalPrompt = (data.originalPrompt as string | null) ?? null;
+
+  const [fullscreen, setFullscreen] = useState(false);
+
+  // Listen for global Cmd+Shift+F
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { imageBase64: string; prompt: unknown } | undefined;
+      if (detail?.imageBase64 === imageBase64 && imageBase64) setFullscreen(true);
+    };
+    window.addEventListener("ac:fullscreen", handler);
+    return () => window.removeEventListener("ac:fullscreen", handler);
+  }, [imageBase64]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!fullscreen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setFullscreen(false); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [fullscreen]);
 
   const handleDownload = () => {
     if (!imageBase64) return;
@@ -84,7 +106,7 @@ export function OutputNode({ id, data, selected: isNodeSelected }: NodeProps) {
               border: "1.5px solid #1A3828",
               boxShadow: "0 4px 0 #040C08, inset 0 0 0 1px rgba(26,158,90,0.08)",
             }}>
-              <Image
+              <NextImage
                 src={`data:image/png;base64,${imageBase64}`}
                 alt={prompt || "Generated image"}
                 width={380}
@@ -113,6 +135,9 @@ export function OutputNode({ id, data, selected: isNodeSelected }: NodeProps) {
                 <Copy size={14} />
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem" }}>COPY</span>
               </button>
+              <button onClick={() => setFullscreen(true)} className="bubble-btn-ghost bubble-btn-icon" title="Fullscreen (⌘⇧F)" style={{ width: 42, height: 38 }}>
+                <Maximize2 size={14} />
+              </button>
             </div>
           </div>
         )}
@@ -120,6 +145,89 @@ export function OutputNode({ id, data, selected: isNodeSelected }: NodeProps) {
 
       <Handle type="target" position={Position.Left}  id="image-in"  style={{ top: "50%", background: "#1A9E5A", width: 16, height: 16 }} />
       <Handle type="source" position={Position.Right} id="image-out" style={{ top: "50%", background: "#0A7040", width: 16, height: 16 }} />
+
+      {/* Fullscreen overlay — portalled to document.body so position:fixed
+          is relative to the viewport, not the ReactFlow transform context */}
+      {fullscreen && imageBase64 && typeof document !== "undefined" && createPortal(
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "#000",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => setFullscreen(false)}
+        >
+          {/* Image fills the viewport, letterboxed */}
+          <img
+            src={`data:image/png;base64,${imageBase64}`}
+            alt={prompt || "Generated"}
+            style={{
+              maxWidth: "100vw",
+              maxHeight: "100vh",
+              objectFit: "contain",
+              display: "block",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Close button — top-right corner of viewport */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setFullscreen(false); }}
+            style={{
+              position: "fixed",
+              top: 20,
+              right: 20,
+              background: "rgba(20,14,14,0.88)",
+              border: "1.5px solid #4A3028",
+              borderRadius: 8,
+              color: "#C0A090",
+              width: 44,
+              height: 44,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+          >
+            <X size={20} />
+          </button>
+
+          {/* Prompt caption — bottom-center, never overflows */}
+          {prompt && (
+            <div
+              style={{
+                position: "fixed",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: "16px 24px",
+                background: "linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%)",
+                pointerEvents: "none",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.72rem",
+                  color: "rgba(255,220,180,0.85)",
+                  margin: 0,
+                  textAlign: "center",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {prompt}
+              </p>
+            </div>
+          )}
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

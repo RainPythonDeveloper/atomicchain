@@ -28,6 +28,8 @@ interface AtomicStore {
   isRunning: boolean;
   generationStatus: GenerationStatus;
   gallery: GenerationResult[];
+  executingNodes: string[];
+  runningChain: string[];
 
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
@@ -38,11 +40,60 @@ interface AtomicStore {
 
   addNode: (type: string, defaultData: Record<string, unknown>, position?: { x: number; y: number }) => void;
   deleteNode: (nodeId: string) => void;
-  runWorkflow: () => Promise<void>;
+  runWorkflow: (genNodeId?: string) => Promise<void>;
   saveWorkflow: () => void;
   loadWorkflow: () => void;
   clearCanvas: () => void;
   addToGallery: (result: GenerationResult) => void;
+  loadPreset: (nodes: Node[], edges: Edge[]) => void;
+}
+
+// Topological sort of nodes feeding into genNodeId.
+// Returns ordered array (root → genNode), or null if a cycle is detected.
+function topoSort(nodes: Node[], edges: Edge[], genNodeId: string): string[] | null {
+  const inputMap = new Map<string, string[]>();
+  nodes.forEach((n) => inputMap.set(n.id, []));
+  edges.forEach((e) => inputMap.get(e.target)?.push(e.source));
+
+  // BFS backwards from genNode to collect subgraph
+  const subgraph = new Set<string>();
+  const bfsQ = [genNodeId];
+  while (bfsQ.length) {
+    const id = bfsQ.shift()!;
+    if (subgraph.has(id)) continue;
+    subgraph.add(id);
+    (inputMap.get(id) ?? []).forEach((src) => bfsQ.push(src));
+  }
+
+  // Kahn's algorithm on subgraph
+  const outMap = new Map<string, string[]>();
+  subgraph.forEach((id) => outMap.set(id, []));
+  edges.forEach((e) => {
+    if (subgraph.has(e.source) && subgraph.has(e.target)) {
+      outMap.get(e.source)?.push(e.target);
+    }
+  });
+
+  const inDeg = new Map<string, number>();
+  subgraph.forEach((id) => inDeg.set(id, 0));
+  edges.forEach((e) => {
+    if (subgraph.has(e.source) && subgraph.has(e.target)) {
+      inDeg.set(e.target, (inDeg.get(e.target) ?? 0) + 1);
+    }
+  });
+
+  const result: string[] = [];
+  const queue = [...subgraph].filter((id) => (inDeg.get(id) ?? 0) === 0);
+  while (queue.length) {
+    const id = queue.shift()!;
+    result.push(id);
+    (outMap.get(id) ?? []).forEach((next) => {
+      inDeg.set(next, (inDeg.get(next) ?? 0) - 1);
+      if (inDeg.get(next) === 0) queue.push(next);
+    });
+  }
+
+  return result.length === subgraph.size ? result : null;
 }
 
 const DRAG_HANDLE = ".node-drag-handle";
@@ -105,6 +156,8 @@ export const useAtomicStore = create<AtomicStore>()(
       isRunning: false,
       generationStatus: "idle",
       gallery: loadGallery(),
+      executingNodes: [],
+      runningChain: [],
 
       onNodesChange: (changes) =>
         set((s) => ({ nodes: applyNodeChanges(changes, s.nodes) })),
@@ -154,15 +207,41 @@ export const useAtomicStore = create<AtomicStore>()(
           ),
         })),
 
-      runWorkflow: async () => {
-        const { nodes, edges, updateNodeData } = get();
-        set({ isRunning: true, generationStatus: "generating" });
+      loadPreset: (nodes, edges) => {
+        set({ nodes, edges, generationStatus: "idle", executingNodes: [] });
+      },
 
-        const genNodes = nodes.filter((n) => n.type === "generateNode");
+      runWorkflow: async (genNodeId?: string) => {
+        const { nodes, edges, updateNodeData } = get();
+
+        // genNodeId provided → run only that Generate's chain (per-node RUN button).
+        // No arg → run every Generate in the canvas (top navbar RUN).
+        const genNodes = nodes.filter(
+          (n) => n.type === "generateNode" && (!genNodeId || n.id === genNodeId)
+        );
         if (genNodes.length === 0) {
-          set({ isRunning: false, generationStatus: "error" });
+          set({ isRunning: false, generationStatus: "error", runningChain: [] });
           return;
         }
+
+        // Collect exactly the nodes involved in this run, so only their
+        // buttons/edges show the "running" visual — not every Generate on the canvas.
+        const chain = new Set<string>();
+        for (const genNode of genNodes) {
+          const ancestors = topoSort(nodes, edges, genNode.id);
+          (ancestors ?? [genNode.id]).forEach((id) => chain.add(id));
+          // include the downstream Output node so the gen→output edge animates too
+          edges
+            .filter((e) => e.source === genNode.id)
+            .forEach((e) => chain.add(e.target));
+        }
+
+        set({
+          isRunning: true,
+          generationStatus: "generating",
+          executingNodes: [],
+          runningChain: [...chain],
+        });
 
         let anyError = false;
 
@@ -227,6 +306,22 @@ export const useAtomicStore = create<AtomicStore>()(
 
           if (!prompt.trim()) continue;
 
+          // --- execution sequence animation ---
+          const order = topoSort(get().nodes, get().edges, genNode.id);
+          if (order) {
+            const STEP = 300;
+            order.forEach((nodeId, idx) => {
+              setTimeout(() => {
+                set((s) => ({ executingNodes: [...s.executingNodes, nodeId] }));
+                setTimeout(() => {
+                  set((s) => ({ executingNodes: s.executingNodes.filter((id) => id !== nodeId) }));
+                }, 700);
+              }, idx * STEP);
+            });
+            await new Promise((r) => setTimeout(r, order.length * STEP + 200));
+          }
+          // ------------------------------------
+
           updateNodeData(genNode.id, { status: "generating" });
 
           const outputEdge = edges.find(
@@ -276,7 +371,7 @@ export const useAtomicStore = create<AtomicStore>()(
           }
         }
 
-        set({ isRunning: false, generationStatus: anyError ? "error" : "done" });
+        set({ isRunning: false, generationStatus: anyError ? "error" : "done", executingNodes: [], runningChain: [] });
       },
 
       saveWorkflow: () => {
@@ -308,7 +403,13 @@ export const useAtomicStore = create<AtomicStore>()(
     {
       name: "ac-workspace",
       partialize: (state) => ({
-        nodes: state.nodes,
+        // Strip imageBase64 from output nodes before persisting — base64 images
+        // can exceed localStorage quota (typically 5 MB).
+        nodes: state.nodes.map((n) =>
+          n.type === "outputNode"
+            ? { ...n, data: { ...n.data, imageBase64: null } }
+            : n
+        ),
         edges: state.edges,
       }),
     }

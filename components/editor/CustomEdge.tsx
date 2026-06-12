@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react"; // useState kept for hover highlight
+import { useState, useCallback } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  getSmoothStepPath,
+  getBezierPath,
   type EdgeProps,
 } from "@xyflow/react";
 import { Scissors } from "lucide-react";
@@ -12,16 +12,21 @@ import { useAtomicStore } from "@/lib/store";
 
 export function CustomEdge({
   id,
+  source, target,
   sourceX, sourceY, targetX, targetY,
   sourcePosition, targetPosition,
   selected,
-  animated,
 }: EdgeProps) {
   const [hovered, setHovered] = useState(false);
-  const setEdges = useAtomicStore((s) => s.setEdges);
-  const edges    = useAtomicStore((s) => s.edges);
+  const setEdges   = useAtomicStore((s) => s.setEdges);
+  const edges      = useAtomicStore((s) => s.edges);
+  // Edge "runs" only when both its endpoints belong to the active run chain,
+  // so running one Generate doesn't animate edges of other pipelines.
+  const isRunning  = useAtomicStore(
+    (s) => s.runningChain.includes(source) && s.runningChain.includes(target)
+  );
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX, sourceY, sourcePosition,
     targetX, targetY, targetPosition,
   });
@@ -47,17 +52,27 @@ export function CustomEdge({
         onMouseLeave={() => setHovered(false)}
       />
 
-      {/* Visible edge */}
+      {/* Visible edge — marching-dash animation ONLY while this edge's chain runs,
+          so idle pipelines stay as static solid lines */}
       <BaseEdge
         path={edgePath}
-        className={animated ? "ac-edge-animated" : ""}
+        className={isRunning ? "ac-edge-animated" : ""}
         style={{
-          stroke: isHighlighted ? "#FF8050" : "#F04D07",
-          strokeWidth: isHighlighted ? 2.5 : 2,
-          filter: `drop-shadow(0 0 ${isHighlighted ? 7 : 3}px rgba(240,77,7,${isHighlighted ? 0.85 : 0.45}))`,
-          transition: "stroke 0.15s, stroke-width 0.15s, filter 0.15s",
+          stroke: isRunning ? "#FFB080" : isHighlighted ? "#FF8050" : "#F04D07",
+          strokeWidth: isRunning ? 2.5 : isHighlighted ? 2.5 : 2,
+          filter: isRunning
+            ? "drop-shadow(0 0 6px rgba(255,176,80,0.9)) drop-shadow(0 0 14px rgba(240,77,7,0.5))"
+            : `drop-shadow(0 0 ${isHighlighted ? 7 : 3}px rgba(240,77,7,${isHighlighted ? 0.85 : 0.45}))`,
+          transition: "stroke 0.2s, stroke-width 0.2s, filter 0.2s",
         }}
       />
+
+      {/* Spark dot travelling along the edge when running */}
+      {isRunning && (
+        <circle r={4} fill="#FFD080" style={{ filter: "drop-shadow(0 0 6px #FFB040)" }}>
+          <animateMotion dur="1s" repeatCount="indefinite" path={edgePath} />
+        </circle>
+      )}
 
       <EdgeLabelRenderer>
         {selected && (

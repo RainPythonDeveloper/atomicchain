@@ -1,12 +1,13 @@
 "use client";
 
 import { useAtomicStore } from "@/lib/store";
-import { Zap, Save, FolderOpen, Trash2, Images, Loader2 } from "lucide-react";
+import { Zap, Save, FolderOpen, Trash2, Images, Loader2, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { DEMO_PRESET } from "@/lib/presets";
 
 export function Toolbar() {
-  const { runWorkflow, saveWorkflow, loadWorkflow, clearCanvas, isRunning, generationStatus } = useAtomicStore();
+  const { runWorkflow, saveWorkflow, loadWorkflow, clearCanvas, loadPreset, isRunning, generationStatus } = useAtomicStore();
 
   const statusInfo = {
     idle:       { label: "READY",       color: "#706060" },
@@ -104,13 +105,28 @@ export function Toolbar() {
 
       {/* Run button */}
       <button
-        onClick={runWorkflow}
+        onClick={() => runWorkflow()}
         disabled={isRunning}
         className="bubble-btn flex items-center gap-2"
         style={{ padding: "9px 22px", fontSize: "0.78rem" }}
       >
         {isRunning ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
         {isRunning ? "RUNNING…" : "RUN"}
+      </button>
+
+      {/* Divider */}
+      <div style={{ width: 1, height: 28, background: "#3D2C28", flexShrink: 0 }} />
+
+      {/* Demo preset button */}
+      <button
+        onClick={() => loadPreset(DEMO_PRESET.nodes, DEMO_PRESET.edges)}
+        disabled={isRunning}
+        className="bubble-btn-ghost flex items-center gap-2"
+        style={{ padding: "8px 14px", color: "#F0C060" }}
+        title="Load demo pipeline"
+      >
+        <PlayCircle size={15} />
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", letterSpacing: "0.08em" }}>DEMO</span>
       </button>
 
       {/* Divider */}

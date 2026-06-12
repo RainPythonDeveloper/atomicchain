@@ -572,6 +572,25 @@
   animation: pulse-orange 1.4s ease-in-out infinite;
 }
 
+@keyframes node-execute-glow {
+  0%   {
+    box-shadow: 0 0 0 1px #0A0604, 0 6px 0 0 #1A0E0C, 0 7px 0 1px #080402, 0 0 0px rgba(240,77,7,0.0);
+    border-color: var(--ac-border-lt);
+  }
+  35%  {
+    box-shadow: 0 0 0 1px #0A0604, 0 6px 0 0 #1A0E0C, 0 7px 0 1px #080402,
+      0 0 28px rgba(240,77,7,0.95), 0 0 56px rgba(240,77,7,0.45), 0 0 90px rgba(240,77,7,0.2);
+    border-color: rgba(240,77,7,0.9);
+  }
+  100% {
+    box-shadow: 0 0 0 1px #0A0604, 0 6px 0 0 #1A0E0C, 0 7px 0 1px #080402, 0 0 0px rgba(240,77,7,0.0);
+    border-color: var(--ac-border-lt);
+  }
+}
+.node-executing {
+  animation: node-execute-glow 0.65s ease-out 1 forwards;
+}
+
 @keyframes retro-flicker {
   0%, 100% { opacity: 1; }
   92% { opacity: 1; }

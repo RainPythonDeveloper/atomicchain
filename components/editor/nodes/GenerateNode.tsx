@@ -5,16 +5,22 @@ import { useAtomicStore } from "@/lib/store";
 import { Zap, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { NodeDeleteButton } from "./NodeDeleteButton";
 
+// Handle order top→bottom: style, prompt, camera, lighting, fx
 const HANDLE_LABELS = [
-  { id: "prompt-in",   top: "16%", bg: "#2B7FE0", label: "prompt"   },
-  { id: "negative-in", top: "32%", bg: "#C42020", label: "negative"  },
-  { id: "size-in",     top: "48%", bg: "#0A9E8A", label: "size"      },
-  { id: "modifier-in", top: "64%", bg: "#9333EA", label: "modifiers" },
-  { id: "batch-in",    top: "80%", bg: "#65A30D", label: "batch"     },
+  { id: "style-in",    top: "15%", bg: "#9333EA", label: "style"    },
+  { id: "prompt-in",   top: "28%", bg: "#2B7FE0", label: "prompt"   },
+  { id: "camera-in",   top: "43%", bg: "#F59E0B", label: "camera"   },
+  { id: "lighting-in", top: "58%", bg: "#FB923C", label: "lighting" },
+  { id: "fx-in",       top: "73%", bg: "#9EF01A", label: "fx"       },
+  { id: "modifier-in", top: "88%", bg: "#706060", label: "other"    },
 ];
 
 export function GenerateNode({ id, data, selected: isNodeSelected }: NodeProps) {
-  const { runWorkflow, isRunning } = useAtomicStore();
+  const runWorkflow = useAtomicStore((s) => s.runWorkflow);
+  const isRunning   = useAtomicStore((s) => s.isRunning);
+  // Is THIS generate part of the active run? Drives this node's running visual,
+  // so launching one Generate doesn't light up every Generate on the canvas.
+  const isThisRunning = useAtomicStore((s) => s.runningChain.includes(id));
   const status = (data.status as string) ?? "idle";
 
   const statusCfg = {
@@ -27,7 +33,7 @@ export function GenerateNode({ id, data, selected: isNodeSelected }: NodeProps) 
   const StatusIcon = { idle: Zap, generating: Loader2, done: CheckCircle, error: XCircle }[status] ?? Zap;
 
   return (
-    <div className={`retro-node ${isRunning ? "node-generating" : ""}`} style={{ width: 240 }}>
+    <div className={`retro-node ${isThisRunning ? "node-generating" : ""}`} style={{ width: 240 }}>
       <div className="retro-node-header node-drag-handle node-header-orange">
         <StatusIcon size={16} className={status === "generating" ? "animate-spin" : ""} />
         <span>Generate</span>
@@ -60,13 +66,13 @@ export function GenerateNode({ id, data, selected: isNodeSelected }: NodeProps) 
         </div>
 
         <button
-          onClick={() => runWorkflow()}
+          onClick={() => runWorkflow(id)}
           disabled={isRunning}
           className="nodrag bubble-btn w-full flex items-center justify-center gap-2"
           style={{ padding: "10px 16px", fontSize: "0.8rem" }}
         >
-          {isRunning ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
-          {isRunning ? "RUNNING…" : "RUN"}
+          {isThisRunning ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
+          {isThisRunning ? "RUNNING…" : "RUN"}
         </button>
       </div>
 
