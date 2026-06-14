@@ -24,9 +24,16 @@ A node-based AI image & video editor — connect nodes to compose prompts, style
 
 ## Demo
 
-https://github.com/RainPythonDeveloper/atomicchain/raw/main/demo-reel/video/AtomicChain.mp4
+<div align="center">
 
-> If the player doesn't load, [**watch the demo reel directly**](./demo-reel/video/AtomicChain.mp4).
+<video src="https://github.com/RainPythonDeveloper/atomicchain/raw/main/demo-reel/video/AtomicChain.mp4" controls width="800">
+  Your browser doesn't support embedded video —
+  <a href="https://github.com/RainPythonDeveloper/atomicchain/raw/main/demo-reel/video/AtomicChain.mp4">watch the demo reel directly</a>.
+</video>
+
+</div>
+
+> ▶️ The player appears once the video is pushed to `main`. Until then, [**watch the demo reel directly**](./demo-reel/video/AtomicChain.mp4).
 
 ## Contents
 
