@@ -1,0 +1,6 @@
+# Remotion video project — generated / installed artifacts
+node_modules/
+out/
+qa/
+.remotion/
+*.log

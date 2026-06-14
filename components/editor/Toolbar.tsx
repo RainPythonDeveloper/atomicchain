@@ -1,10 +1,10 @@
 "use client";
 
 import { useAtomicStore } from "@/lib/store";
-import { Zap, Save, FolderOpen, Trash2, Images, Loader2, PlayCircle } from "lucide-react";
+import { Zap, Save, FolderOpen, Trash2, Images, Loader2, PlayCircle, Workflow } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { DEMO_PRESET } from "@/lib/presets";
+import { DEMO_PRESET, CHAIN_PRESET } from "@/lib/presets";
 
 export function Toolbar() {
   const { runWorkflow, saveWorkflow, loadWorkflow, clearCanvas, loadPreset, isRunning, generationStatus } = useAtomicStore();
@@ -127,6 +127,18 @@ export function Toolbar() {
       >
         <PlayCircle size={15} />
         <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", letterSpacing: "0.08em" }}>DEMO</span>
+      </button>
+
+      {/* Full chain pipeline preset button */}
+      <button
+        onClick={() => loadPreset(CHAIN_PRESET.nodes, CHAIN_PRESET.edges)}
+        disabled={isRunning}
+        className="bubble-btn-ghost flex items-center gap-2"
+        style={{ padding: "8px 14px", color: "#F0903C" }}
+        title="Load full multi-stage chain pipeline (all 20 node types)"
+      >
+        <Workflow size={15} />
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", letterSpacing: "0.08em" }}>CHAIN</span>
       </button>
 
       {/* Divider */}
