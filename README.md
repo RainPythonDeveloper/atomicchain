@@ -1,8 +1,32 @@
-# atomicchain
+<div align="center">
 
-A node-based AI image and video generation editor. Build visual workflows by connecting nodes — compose prompts, apply styles, control camera angles, lighting, materials, and effects — then run the entire pipeline with a single shortcut.
+<img src="./public/hephaestus.png" alt="Atomic Chain" width="120" height="120" />
 
-![atomicchain editor](./public/og-preview.png)
+<h1>Atomic Chain</h1>
+
+<p><em>Build. Chain. Generate.</em><br/>
+A node-based AI image & video editor — connect nodes to compose prompts, styles, cameras, lighting, materials, and effects, then run the whole pipeline with one shortcut.</p>
+
+<p>
+  <img src="https://img.shields.io/badge/release-v1.0%20·%20first%20deploy-F04D07?style=for-the-badge&labelColor=1C1208" alt="Release v1.0 — first official deploy" />
+  <a href="https://atomicchain.vercel.app/editor">
+    <img src="https://img.shields.io/badge/live%20demo-atomicchain.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white&labelColor=1C1208" alt="Live demo" />
+  </a>
+</p>
+
+<p>
+  <a href="https://atomicchain.vercel.app/editor"><b>🚀 Launch the editor →</b></a>
+</p>
+
+</div>
+
+---
+
+## Demo
+
+https://github.com/RainPythonDeveloper/atomicchain/raw/main/demo-reel/video/AtomicChain.mp4
+
+> If the player doesn't load, [**watch the demo reel directly**](./demo-reel/video/AtomicChain.mp4).
 
 ## Contents
 
@@ -28,43 +52,43 @@ A node-based AI image and video generation editor. Build visual workflows by con
 
 ### Input
 
-| Node | Description |
-|---|---|
-| **Prompt** | Main text input for the generation |
-| **Negative** | Words and concepts to exclude from the result |
+| Node                  | Description                                                                      |
+| --------------------- | -------------------------------------------------------------------------------- |
+| **Prompt**      | Main text input for the generation                                               |
+| **Negative**    | Words and concepts to exclude from the result                                    |
 | **Surprise Me** | Slot-machine random scene generator — rolls subject, setting, detail, and style |
-| **Combiner** | Merges two prompt streams into one |
-| **Refine** | Sends the current prompt to an AI model and rewrites it for better results |
+| **Combiner**    | Merges two prompt streams into one                                               |
+| **Refine**      | Sends the current prompt to an AI model and rewrites it for better results       |
 
 ### Modifiers
 
-| Node | Description |
-|---|---|
-| **Style** | Visual presets — photorealistic, anime, oil painting, and more |
-| **Artist Style** | Reference a specific artist or art movement with era selector |
-| **Aspect Ratio** | Sets frame format: square, portrait, landscape, widescreen, cinematic |
-| **Size** | Resolution selector: 512×512 up to 1792×1024 |
-| **Camera Shot** | Shot type (close-up, wide, bird's eye) combined with camera angle |
-| **Mood** | Time of day, weather, and overall vibe |
-| **Lighting** | Light setup — golden hour, neon, studio, moonlight, and more |
-| **Color Palette** | Up to 3 dominant colors injected as modifiers |
-| **Made Of…** | Material surface override — glass, LEGO, origami, marble, and more |
-| **Time Machine** | Historical and futuristic eras from 10 000 BC to year 3000 |
-| **Special FX** | Multi-select visual effects: glitch, hologram, x-ray, double exposure (max 3) |
+| Node                    | Description                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| **Style**         | Visual presets — photorealistic, anime, oil painting, and more               |
+| **Artist Style**  | Reference a specific artist or art movement with era selector                 |
+| **Aspect Ratio**  | Sets frame format: square, portrait, landscape, widescreen, cinematic         |
+| **Size**          | Resolution selector: 512×512 up to 1792×1024                                |
+| **Camera Shot**   | Shot type (close-up, wide, bird's eye) combined with camera angle             |
+| **Mood**          | Time of day, weather, and overall vibe                                        |
+| **Lighting**      | Light setup — golden hour, neon, studio, moonlight, and more                 |
+| **Color Palette** | Up to 3 dominant colors injected as modifiers                                 |
+| **Made Of…**     | Material surface override — glass, LEGO, origami, marble, and more           |
+| **Time Machine**  | Historical and futuristic eras from 10 000 BC to year 3000                    |
+| **Special FX**    | Multi-select visual effects: glitch, hologram, x-ray, double exposure (max 3) |
 
 ### Output
 
-| Node | Description |
-|---|---|
-| **Generate** | Triggers the AI pipeline and passes the result downstream |
+| Node                     | Description                                                   |
+| ------------------------ | ------------------------------------------------------------- |
+| **Generate**       | Triggers the AI pipeline and passes the result downstream     |
 | **Batch Generate** | Runs Generate 1–6 times and saves each result to the gallery |
-| **Output** | Displays the generated image; supports download |
-| **Video** | Animates the output image into an MP4 using a motion prompt |
+| **Output**         | Displays the generated image; supports download               |
+| **Video**          | Animates the output image into an MP4 using a motion prompt   |
 
 ## Getting Started
 
 ```bash
-git clone https://github.com/your-username/atomicchain.git
+git clone https://github.com/RainPythonDeveloper/atomicchain.git
 cd atomicchain
 npm install
 ```
@@ -91,28 +115,28 @@ Copy the template and fill in your values:
 cp .env.example .env.local
 ```
 
-| Variable | Description |
-|---|---|
-| `ATOMICCHAIN_API_KEY` | API key for image generation |
-| `ATOMICCHAIN_API_URL` | Endpoint for the image generation API |
-| `VIDEO_API_KEY` | API key for video animation |
-| `VIDEO_API_URL` | Endpoint for creating video jobs |
-| `VIDEO_STATUS_URL` | Endpoint for polling video job status |
-| `VISION_API_KEY` | API key for the vision/describe model |
-| `VISION_API_URL` | Endpoint for the vision API |
-| `VISION_MODEL` | Model ID used for prompt refinement and image description |
+| Variable                | Description                                               |
+| ----------------------- | --------------------------------------------------------- |
+| `ATOMICCHAIN_API_KEY` | API key for image generation                              |
+| `ATOMICCHAIN_API_URL` | Endpoint for the image generation API                     |
+| `VIDEO_API_KEY`       | API key for video animation                               |
+| `VIDEO_API_URL`       | Endpoint for creating video jobs                          |
+| `VIDEO_STATUS_URL`    | Endpoint for polling video job status                     |
+| `VISION_API_KEY`      | API key for the vision/describe model                     |
+| `VISION_API_URL`      | Endpoint for the vision API                               |
+| `VISION_MODEL`        | Model ID used for prompt refinement and image description |
 
 `.env.local` is gitignored and will never be committed. Never put secrets in `NEXT_PUBLIC_` variables — they are exposed to the browser.
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|---|---|
-| `⌘ Enter` | Run the full workflow |
-| `⌘ S` | Save the current workspace |
-| `Backspace` / `Delete` | Remove selected node or edge |
-| Click node → `X` button | Delete a single node |
-| Click edge → `CUT` button | Remove a single connection |
+| Shortcut                    | Action                       |
+| --------------------------- | ---------------------------- |
+| `⌘ Enter`                | Run the full workflow        |
+| `⌘ S`                    | Save the current workspace   |
+| `Backspace` / `Delete`  | Remove selected node or edge |
+| Click node →`X` button   | Delete a single node         |
+| Click edge →`CUT` button | Remove a single connection   |
 
 ## Stack
 
