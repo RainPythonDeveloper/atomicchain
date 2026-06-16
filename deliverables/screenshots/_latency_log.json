@@ -1,0 +1,82 @@
+{
+  "q1_base": {
+    "latency": 8.4,
+    "translated": "a futuristic city in the mountains at sunrise",
+    "ok": true
+  },
+  "q1_sol": {
+    "latency": 7.8,
+    "translated": "a futuristic city in the mountains at sunrise, cinematic lighting, ultra detailed, wide angle shot, golden hour glow",
+    "ok": true
+  },
+  "q2_base": {
+    "latency": 7.6,
+    "translated": "a lone samurai standing in a rice field",
+    "ok": true
+  },
+  "q2_sol": {
+    "latency": 7.8,
+    "translated": "a lone samurai standing in a rice field, photorealistic, dramatic low-angle wide shot, golden hour lighting, crimson and gold color palette, highly detailed, 8k",
+    "ok": true
+  },
+  "q3_base": {
+    "latency": 8.5,
+    "translated": "a red cat in an astronaut's suit floats in outer space among the stars",
+    "ok": true
+  },
+  "q3_sol": {
+    "latency": 9.3,
+    "translated": "a red cat in an astronaut's suit floats in open space among the stars, digital painting, cinematic lighting, ultra detailed",
+    "ok": true
+  },
+  "q4_base": {
+    "latency": 7.7,
+    "translated": "freedom",
+    "ok": true
+  },
+  "q4_sol": {
+    "latency": 7.6,
+    "translated": "freedom, conceptual art, surreal, dramatic lighting, vibrant colors, symbolic composition",
+    "ok": true
+  },
+  "q5_base": {
+    "latency": 7.7,
+    "translated": "a neon sign on a brick wall that says \"HELLO\"",
+    "ok": true
+  },
+  "q5_sol": {
+    "latency": 7.6,
+    "translated": "a neon sign on a brick wall that says \"HELLO\", photorealistic, night scene, neon glow, cinematic",
+    "ok": true
+  },
+  "q6_base": {
+    "latency": 7.6,
+    "translated": "two people shaking hands, extreme close-up on the hands",
+    "ok": true
+  },
+  "q6_sol": {
+    "latency": 7.5,
+    "translated": "two people shaking hands, extreme close-up on the hands, photorealistic, macro shot, studio lighting, highly detailed",
+    "ok": true
+  },
+  "q7_base": {
+    "latency": 7.4,
+    "translated": "a dragon",
+    "ok": true
+  },
+  "q7_sol": {
+    "latency": 7.6,
+    "translated": "a dragon, oil painting style, dramatic chiaroscuro lighting, low angle epic shot, made of molten lava and obsidian, ancient medieval era, deep red and black color palette, ultra detailed",
+    "ok": true
+  },
+  "q8_base": {
+    "latency": 7.4,
+    "translated": "a mountain landscape with a lake",
+    "ok": true
+  },
+  "q8_sol": {
+    "latency": 7.2,
+    "translated": "a mountain landscape with a lake, golden hour warm sunset lighting, bright midnight full moonlight, harsh midday sun",
+    "ok": true
+  }
+}
